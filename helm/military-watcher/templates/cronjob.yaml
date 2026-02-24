@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: military-aircraft-svc
+  labels:
+    app: military-aircraft-svc
+spec:
+  schedule: "{{ .Values.militaryAircraftSvc.schedule }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: military-aircraft-svc
+              image: "{{ .Values.militaryAircraftSvc.image }}"
+              env:
+                - name: adsb.api.url
+                  value: "https://api.adsb.lol/v2/mil"
+                - name: kafka.bootstrap.servers
+                  valueFrom:
+                    configMapKeyRef:
+                      name: military-config
+                      key: kafka.bootstrap.servers
+                - name: kafka.topic
+                  value: "military_flights"
+                - name: run.once
+                  value: "true"
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"

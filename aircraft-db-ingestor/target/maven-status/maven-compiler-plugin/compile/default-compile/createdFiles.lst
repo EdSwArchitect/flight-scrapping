@@ -1,0 +1,7 @@
+com/military/ingestor/BatchInsertService.class
+com/military/ingestor/FlightRecordMapper.class
+com/military/ingestor/model/FlightRecord.class
+com/military/ingestor/AircraftDbIngestorMain.class
+com/military/ingestor/model/FlightRecord$FlightRecordBuilder.class
+com/military/ingestor/KafkaConsumerService.class
+com/military/ingestor/MetricsServer.class

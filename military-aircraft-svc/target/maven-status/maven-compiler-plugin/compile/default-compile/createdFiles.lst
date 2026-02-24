@@ -1,0 +1,6 @@
+com/military/aircraft/MetricsServer.class
+com/military/aircraft/model/V2Response.class
+com/military/aircraft/KafkaProducerService.class
+com/military/aircraft/AdsBApiClient.class
+com/military/aircraft/MilitaryAircraftSvcMain.class
+com/military/aircraft/model/V2ResponseAcItem.class

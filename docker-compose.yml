@@ -1,0 +1,170 @@
+services:
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: postgres-primary
+    environment:
+      POSTGRES_USER: military
+      POSTGRES_PASSWORD: military
+      POSTGRES_DB: military_watcher
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U military -d military_watcher"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: postgres-replica
+    environment:
+      POSTGRES_USER: military
+      POSTGRES_PASSWORD: military
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-replica-data:/var/lib/postgresql/data
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    profiles:
+      - full
+    # Note: For simple dev, primary serves both read/write. Replica requires replication setup.
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    profiles:
+      - kafka-legacy
+
+  kafka-legacy:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-legacy
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-legacy:9094
+    profiles:
+      - kafka-legacy
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards/json
+    depends_on:
+      - prometheus
+
+  military-aircraft-svc:
+    build: ./military-aircraft-svc
+    container_name: military-aircraft-svc
+    restart: "no"
+    environment:
+      adsb.api.url: "https://api.adsb.lol/v2/mil"
+      kafka.bootstrap.servers: kafka:9092
+      kafka.topic: military_flights
+      run.once: "true"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    profiles:
+      - app
+
+  aircraft-db-ingestor:
+    build: ./aircraft-db-ingestor
+    container_name: aircraft-db-ingestor
+    environment:
+      kafka.bootstrap.servers: kafka:9092
+      kafka.topic: military_flights
+      db.write.url: jdbc:postgresql://postgres-primary:5432/military_watcher
+      db.write.username: military
+      db.write.password: military
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    profiles:
+      - app
+
+  military-watcher-api:
+    build: ./military-watcher-api
+    container_name: military-watcher-api
+    ports:
+      - "8080:8080"
+    environment:
+      db.read.url: jdbc:postgresql://postgres-primary:5432/military_watcher
+      db.read.username: military
+      db.read.password: military
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    profiles:
+      - app
+
+  military-watcher-ui:
+    build:
+      context: ./ui
+      args:
+        VITE_API_URL: http://localhost:8080
+    container_name: military-watcher-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      - military-watcher-api
+    profiles:
+      - app
+
+volumes:
+  postgres-primary-data:
+  postgres-replica-data:
+  grafana-data:

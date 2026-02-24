@@ -1,0 +1,23 @@
+postgres:
+  primary:
+    enabled: true
+  replica:
+    enabled: false
+
+kafka:
+  bootstrapServers: kafka:9092
+
+militaryAircraftSvc:
+  image: military-aircraft-svc:latest
+  schedule: "*/5 * * * *"
+
+aircraftDbIngestor:
+  image: aircraft-db-ingestor:latest
+
+militaryWatcherApi:
+  image: military-watcher-api:latest
+  port: 8080
+
+ui:
+  image: military-watcher-ui:latest
+  port: 80

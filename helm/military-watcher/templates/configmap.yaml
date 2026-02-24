@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: military-config
+  labels:
+    app: military-watcher
+data:
+  kafka.bootstrap.servers: "{{ .Values.kafka.bootstrapServers }}"
+  db.write.url: "jdbc:postgresql://postgres-primary:5432/military_watcher"
+  db.read.url: "jdbc:postgresql://postgres-primary:5432/military_watcher"

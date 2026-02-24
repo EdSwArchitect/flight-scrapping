@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: military-watcher-ui
+  labels:
+    app: military-watcher-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: military-watcher-ui
+  template:
+    metadata:
+      labels:
+        app: military-watcher-ui
+    spec:
+      containers:
+        - name: military-watcher-ui
+          image: "{{ .Values.ui.image }}"
+          ports:
+            - containerPort: {{ .Values.ui.port }}
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: military-watcher-ui
+spec:
+  selector:
+    app: military-watcher-ui
+  ports:
+    - port: {{ .Values.ui.port }}
+      targetPort: {{ .Values.ui.port }}
+  type: ClusterIP

@@ -1,0 +1,3 @@
+com/military/ingestor/BatchInsertServiceTest.class
+com/military/ingestor/FlightRecordMapperTest.class
+com/military/ingestor/KafkaConsumerServiceIntegrationTest.class

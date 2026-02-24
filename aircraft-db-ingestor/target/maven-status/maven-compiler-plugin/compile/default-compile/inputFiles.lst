@@ -1,0 +1,6 @@
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/model/FlightRecord.java
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/MetricsServer.java
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/AircraftDbIngestorMain.java
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/FlightRecordMapper.java
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/KafkaConsumerService.java
+/Users/edwinbrown/ai-playground/ai-military-2/aircraft-db-ingestor/src/main/java/com/military/ingestor/BatchInsertService.java

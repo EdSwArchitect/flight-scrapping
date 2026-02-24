@@ -1,0 +1,66 @@
+{{- if .Values.postgres.primary.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-primary-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-primary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-primary
+  template:
+    metadata:
+      labels:
+        app: postgres-primary
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: military
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: military-db-secret
+                  key: db-password
+            - name: POSTGRES_DB
+              value: military_watcher
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init-schema
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-primary-pvc
+        - name: init-schema
+          configMap:
+            name: postgres-init-schema
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-primary
+spec:
+  selector:
+    app: postgres-primary
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
+{{- end }}

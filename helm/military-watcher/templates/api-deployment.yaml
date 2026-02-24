@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: military-watcher-api
+  labels:
+    app: military-watcher-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: military-watcher-api
+  template:
+    metadata:
+      labels:
+        app: military-watcher-api
+    spec:
+      containers:
+        - name: military-watcher-api
+          image: "{{ .Values.militaryWatcherApi.image }}"
+          ports:
+            - containerPort: {{ .Values.militaryWatcherApi.port }}
+          env:
+            - name: db.read.url
+              valueFrom:
+                configMapKeyRef:
+                  name: military-config
+                  key: db.read.url
+            - name: db.read.username
+              value: military
+            - name: db.read.password
+              valueFrom:
+                secretKeyRef:
+                  name: military-db-secret
+                  key: db-password
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: military-watcher-api
+spec:
+  selector:
+    app: military-watcher-api
+  ports:
+    - port: {{ .Values.militaryWatcherApi.port }}
+      targetPort: {{ .Values.militaryWatcherApi.port }}
+  type: ClusterIP

@@ -1,0 +1,3 @@
+com/military/aircraft/AdsBApiClientTest.class
+com/military/aircraft/KafkaProducerServiceTest.class
+com/military/aircraft/KafkaProducerServiceIntegrationTest.class

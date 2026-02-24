@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-schema
+data:
+  01-schema.sql: |
+    CREATE TABLE IF NOT EXISTS flights (
+        id BIGSERIAL PRIMARY KEY,
+        hex VARCHAR(24) UNIQUE NOT NULL,
+        flight VARCHAR(32),
+        r VARCHAR(32),
+        t VARCHAR(16),
+        lat DOUBLE PRECISION,
+        lon DOUBLE PRECISION,
+        alt_baro INT,
+        gs DOUBLE PRECISION,
+        track DOUBLE PRECISION,
+        seen TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        raw JSONB
+    );
+    CREATE INDEX IF NOT EXISTS idx_flights_hex ON flights(hex);
+    CREATE INDEX IF NOT EXISTS idx_flights_lat_lon ON flights(lat, lon);
+    CREATE INDEX IF NOT EXISTS idx_flights_updated_at ON flights(updated_at);

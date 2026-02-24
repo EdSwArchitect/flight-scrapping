@@ -1,0 +1,36 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: military-watcher
+build:
+  artifacts:
+    - image: military-aircraft-svc
+      context: military-aircraft-svc
+    - image: aircraft-db-ingestor
+      context: aircraft-db-ingestor
+    - image: military-watcher-api
+      context: military-watcher-api
+    - image: military-watcher-ui
+      context: ui
+deploy:
+  helm:
+    releases:
+      - name: military-watcher
+        chartPath: helm/military-watcher
+        values:
+          militaryAircraftSvc:
+            image: military-aircraft-svc
+          aircraftDbIngestor:
+            image: aircraft-db-ingestor
+          militaryWatcherApi:
+            image: military-watcher-api
+          ui:
+            image: military-watcher-ui
+profiles:
+  - name: dev
+    build:
+      local: {}
+  - name: prod
+    build:
+      tagPolicy:
+        sha256: {}

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aircraft-db-ingestor
+  labels:
+    app: aircraft-db-ingestor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aircraft-db-ingestor
+  template:
+    metadata:
+      labels:
+        app: aircraft-db-ingestor
+    spec:
+      containers:
+        - name: aircraft-db-ingestor
+          image: "{{ .Values.aircraftDbIngestor.image }}"
+          env:
+            - name: kafka.bootstrap.servers
+              valueFrom:
+                configMapKeyRef:
+                  name: military-config
+                  key: kafka.bootstrap.servers
+            - name: db.write.url
+              valueFrom:
+                configMapKeyRef:
+                  name: military-config
+                  key: db.write.url
+            - name: db.write.username
+              value: military
+            - name: db.write.password
+              valueFrom:
+                secretKeyRef:
+                  name: military-db-secret
+                  key: db-password
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aircraft-db-ingestor
+spec:
+  selector:
+    app: aircraft-db-ingestor
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP
