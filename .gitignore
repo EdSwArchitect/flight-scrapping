@@ -1,0 +1,48 @@
+certs/
+# Java
+#
+# Compiled class file
+*.class
+
+# Generated files
+*.generated
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Javadoc
+/javadoc/
+
+# Java Annotation Processing
+/apt_generated/
+
+# Maven
+/target/
+pom.xml.tag
+pom.xml.next
+pom.xml.bak
+pom.xml.versions
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.stacktrace
+
+# Gradle
+.gradle/
+/build/
+gradle.properties.template
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+*.iml
+*.iws
+*.ipr
+
